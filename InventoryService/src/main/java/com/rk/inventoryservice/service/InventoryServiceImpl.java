@@ -1,12 +1,12 @@
 package com.rk.inventoryservice.service;
 
-import com.rk.inventoryservice.model.Inventory;
+import com.rk.inventoryservice.dto.InventoryResponse;
 import com.rk.inventoryservice.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,8 +16,13 @@ public class InventoryServiceImpl implements InventoryService{
 
     @Transactional(readOnly = true)
     @Override
-    public boolean isInStock(String skuCode) {
-        Optional<Inventory> inventory = inventoryRepository.findBySkuCode(skuCode);
-        return inventory.filter(value -> value.getQuantity() > 0).isPresent();
+    public List<InventoryResponse> isInStock(List<String> skuCode) {
+        return inventoryRepository.findBySkuCodeIn(skuCode).stream()
+                .map(inventory ->
+                    InventoryResponse.builder()
+                            .skuCode(inventory.getSkuCode())
+                            .isInStock(inventory.getQuantity() > 0)
+                            .build()
+                ).toList();
     }
 }
